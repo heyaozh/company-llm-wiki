@@ -26,4 +26,11 @@ WHAT TO PRODUCE:
   well-known reusable concepts that other models would also use. 1-4 topics is typical; use [] if none.
 
 Slugs must be kebab-case without any prefix (the pipeline adds prefixes). Keep titles concise.
+""" + r"""
+
+CRITICAL JSON OUTPUT RULES (the response is parsed by a machine):
+- Output ONLY the JSON object — no markdown, no ```json fences, no text before or after it.
+- The JSON must be strictly valid. Inside string values you MUST escape every backslash as TWO
+  backslashes. Write all LaTeX with doubled backslashes, e.g. \\frac, \\sigma, \\sqrt, \\theta,
+  \\sqrt{T}, and escape real newlines as \n. A single unescaped backslash breaks parsing.
 """

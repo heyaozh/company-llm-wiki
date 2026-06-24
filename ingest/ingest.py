@@ -45,6 +45,34 @@ def pdf_text(path: str) -> str:
     return "\n\n".join((page.extract_text() or "") for page in reader.pages)
 
 
+def _clean(content: str) -> str:
+    content = content.strip()
+    if content.startswith("```"):                       # strip ```json ... ``` fences
+        content = content.split("\n", 1)[-1]
+        content = content.rsplit("```", 1)[0]
+    return content.strip()
+
+
+def _parse_ingest(content: str) -> Ingest:
+    content = _clean(content)
+    try:
+        return Ingest.model_validate_json(content)
+    except Exception:
+        # Common cause: LaTeX backslashes that aren't valid JSON escapes. Auto-repair.
+        try:
+            from json_repair import repair_json
+        except ImportError:
+            raise SystemExit("Model returned invalid JSON. Run `pip install json-repair` to "
+                             "enable auto-repair, then re-run.")
+        try:
+            return Ingest.model_validate_json(repair_json(content))
+        except Exception as exc:
+            dump = REPO / "ingest" / "_last_response.json"
+            dump.write_text(content, encoding="utf-8")
+            raise SystemExit(f"Could not parse the model output even after repair: {exc}\n"
+                             f"Raw response saved to {dump} — open it to see what came back.")
+
+
 def extract(src: str, model: str) -> Ingest:
     text = pdf_text(src)
     if not text.strip():
@@ -62,7 +90,7 @@ def extract(src: str, model: str) -> Ingest:
             {"role": "user", "content": "SOURCE DOCUMENT (text extracted from PDF):\n\n" + text[:MAX_CHARS]},
         ],
     )
-    return Ingest.model_validate_json(resp.choices[0].message.content)
+    return _parse_ingest(resp.choices[0].message.content)
 
 
 # ---------- assemble SCHEMA-compliant files ----------
