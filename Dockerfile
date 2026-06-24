@@ -1,5 +1,6 @@
 # MCP server for the CCPRM wiki — a self-contained container for the platform's MCP slot.
-# Build from the REPO ROOT:  docker build -f mcp_server/Dockerfile -t ccprm-wiki-mcp .
+# Lives at the repo root so the build context IS the repo (the wiki content gets baked in).
+# Build:  docker build -t ccprm-wiki-mcp .
 FROM python:3.11-slim
 
 WORKDIR /app

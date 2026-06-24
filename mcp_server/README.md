@@ -23,13 +23,14 @@ Resources: `wiki://schema`, `wiki://manual`.
 
 ## Deploy to the platform's MCP slot (platform hosts the container)
 
-The [`Dockerfile`](Dockerfile) builds a **self-contained** image: it bakes the wiki content in
-(POC snapshot — rebuild to refresh), serves over HTTP, and is **read-only** (`MCP_READONLY=1`,
-so the write tool is dropped). No git token needed.
+The [`Dockerfile`](../Dockerfile) (at the **repo root**) builds a **self-contained** image: it
+bakes the wiki content in (POC snapshot — rebuild to refresh), serves over HTTP, and is
+**read-only** (`MCP_READONLY=1`, so the write tool is dropped). No git token needed. It is at
+the repo root so the build context is the whole repo and the wiki content gets copied in.
 
 ```bash
-# build from the REPO ROOT (context = repo root)
-docker build -f mcp_server/Dockerfile -t ccprm-wiki-mcp .
+# build from the repo root
+docker build -t ccprm-wiki-mcp .
 ```
 
 Give that image (or this repo + Dockerfile path) to the MCP slot. Defaults baked in:
