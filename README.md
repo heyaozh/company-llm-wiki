@@ -56,9 +56,22 @@ company-llm-wiki/
 ├── specifications/           # scaffolded, populated later
 ├── models/                   # one overview page per model
 ├── assets/                   # figures, diagrams (referenced from docs)
-└── tools/
-    └── validate_wiki.py      # front-matter + reference-integrity checker (runs in CI)
+├── tools/
+│   └── validate_wiki.py      # front-matter + reference-integrity checker (runs in CI)
+├── mcp_server/               # MCP capability layer (tools over the repo)
+├── agent/                    # Google ADK agent (reasoning layer)
+└── docs/
+    └── architecture.md       # agent & MCP design: diagram, roles, deployment
 ```
+
+## Agent & MCP layer
+
+An LLM agent sits on top of this wiki via the **Model Context Protocol (MCP)** for tools and
+**Google ADK** for reasoning. The MCP server ([`mcp_server/`](mcp_server/)) exposes the repo
+as tools (search, traceability, gaps, validate, PR-only writes); the ADK agent
+([`agent/`](agent/)) runs a read-only Q&A agent plus a maintainer that writes through PRs.
+Full design — architecture diagram, agent roles, the "don't guess" gates, and deployment to
+Cloud Run / Vertex AI Agent Engine — is in [`docs/architecture.md`](docs/architecture.md).
 
 ## Core principles
 
