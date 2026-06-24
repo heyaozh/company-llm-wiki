@@ -1,22 +1,19 @@
-# MCP server for the CCPRM wiki — deploy to Cloud Run.
+# MCP server for the CCPRM wiki — a self-contained container for the platform's MCP slot.
+# Build from the REPO ROOT:  docker build -f mcp_server/Dockerfile -t ccprm-wiki-mcp .
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Tools needed by the write path (propose_document opens PRs).
-RUN apt-get update && apt-get install -y --no-install-recommends git \
-    && rm -rf /var/lib/apt/lists/*
+COPY mcp_server/requirements.txt mcp_server/requirements.txt
+RUN pip install --no-cache-dir -r mcp_server/requirements.txt
 
-COPY mcp_server/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Bake the wiki content + server into the image (POC snapshot — rebuild to refresh content).
+COPY . .
 
-# The wiki content is mounted/cloned at runtime into /data; WIKI_ROOT points to it.
-COPY mcp_server/ ./mcp_server/
-COPY tools/ ./tools/
-
-ENV MCP_TRANSPORT=sse \
-    WIKI_ROOT=/data/company-llm-wiki \
+ENV WIKI_ROOT=/app \
+    MCP_TRANSPORT=streamable-http \
+    MCP_READONLY=1 \
     PORT=8080
 
-# On start, clone/refresh the wiki, then run the server.
-CMD ["sh", "-c", "git clone --depth 1 \"$WIKI_REPO_URL\" \"$WIKI_ROOT\" 2>/dev/null || git -C \"$WIKI_ROOT\" pull; python mcp_server/server.py"]
+EXPOSE 8080
+CMD ["python", "mcp_server/server.py"]

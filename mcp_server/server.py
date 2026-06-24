@@ -1,11 +1,19 @@
 """MCP server exposing the CCPRM Model & Analytics wiki as tools + resources.
 
-Vendor-neutral: the same server is consumed by the GCP/ADK agent (via MCPToolset),
-by Claude Code locally, or by any MCP client. It wraps `WikiRepo` (see wiki_repo.py).
+Vendor-neutral: the same server is consumed by your platform's Agent (via the MCP
+slot), by Claude Code locally, or by any MCP client. It wraps `WikiRepo`.
 
-Run:
-    WIKI_ROOT=/path/to/company-llm-wiki python mcp_server/server.py            # stdio (local/Claude)
-    WIKI_ROOT=/path/to/company-llm-wiki MCP_TRANSPORT=sse python mcp_server/server.py   # SSE (Cloud Run)
+Run / deploy:
+    # local (stdio, for Claude Code)
+    WIKI_ROOT=/path/to/repo python mcp_server/server.py
+    # hosted HTTP service (what the platform runs)
+    MCP_TRANSPORT=streamable-http PORT=8080 WIKI_ROOT=/app python mcp_server/server.py
+
+Env:
+    WIKI_ROOT       repo root to read (default: this repo)
+    MCP_TRANSPORT   stdio | sse | streamable-http   (default: stdio)
+    PORT            HTTP port for sse/streamable-http (default: 8080)
+    MCP_READONLY    1 to drop the write tool (recommended for the hosted QA server)
 """
 from __future__ import annotations
 
@@ -17,9 +25,11 @@ from mcp.server.fastmcp import FastMCP
 from wiki_repo import WikiRepo
 
 WIKI_ROOT = os.environ.get("WIKI_ROOT", str(pathlib.Path(__file__).resolve().parent.parent))
-repo = WikiRepo(WIKI_ROOT)
+READONLY = os.environ.get("MCP_READONLY", "").lower() in ("1", "true", "yes")
+PORT = int(os.environ.get("PORT", "8080"))
 
-mcp = FastMCP("ccprm-wiki")
+repo = WikiRepo(WIKI_ROOT)
+mcp = FastMCP("ccprm-wiki", host="0.0.0.0", port=PORT)
 
 
 # ---- read / query tools (consumer) ----
@@ -42,8 +52,8 @@ def get_document(doc_id: str) -> dict:
 
 @mcp.tool()
 def get_traceability(model_id: str) -> dict:
-    """Return the methodology -> business_requirement -> specification chain (plus
-    concepts) for a given model id."""
+    """Return the concept -> business_requirement -> specification chain (plus
+    manuals) for a given model id."""
     return repo.traceability(model_id)
 
 
@@ -68,27 +78,27 @@ def references(doc_id: str) -> dict:
 
 @mcp.tool()
 def search_wiki(query: str, k: int = 6) -> list[dict]:
-    """Search the wiki for a query. Returns [{doc_id, title, score, snippet}].
-    Keyword-based today; swap in embeddings without changing this signature."""
+    """Search the wiki for a query. Returns [{doc_id, title, score, snippet}]."""
     return repo.search(query, k)
 
 
 @mcp.tool()
 def validate() -> dict:
-    """Run the CI validator (front matter, controlled vocab, reference integrity,
-    traceability chain). Returns {ok, output}."""
+    """Run the CI validator (front matter, controlled vocab, reference integrity).
+    Returns {ok, output}."""
     return repo.validate()
 
 
-# ---- write tool (producer) — PR only, never main ----
-@mcp.tool()
-def propose_document(rel_path: str, content: str, message: str) -> dict:
-    """Write a document on a new branch and open a Pull Request. NEVER commits to
-    main: CI gates the PR and a human reviews it. Requires git + `gh` auth.
+# ---- write tool (producer) — registered only when NOT read-only ----
+if not READONLY:
+    @mcp.tool()
+    def propose_document(rel_path: str, content: str, message: str) -> dict:
+        """Write a document on a new branch and open a Pull Request. NEVER commits to
+        main: CI gates the PR and a human reviews it. Requires git + `gh` auth.
 
-    rel_path example: 'internal/concept/con-initial-margin.md'
-    """
-    return repo.open_pr(rel_path, content, message)
+        rel_path example: 'internal/concept/con-initial-margin.md'
+        """
+        return repo.open_pr(rel_path, content, message)
 
 
 # ---- resources (browsable context) ----
@@ -105,5 +115,4 @@ def manual() -> str:
 
 
 if __name__ == "__main__":
-    transport = os.environ.get("MCP_TRANSPORT", "stdio")
-    mcp.run(transport=transport)
+    mcp.run(transport=os.environ.get("MCP_TRANSPORT", "stdio"))

@@ -1,52 +1,57 @@
 # MCP server — CCPRM wiki capability layer
 
-A vendor-neutral [Model Context Protocol](https://modelcontextprotocol.io) server that
-exposes this wiki as tools and resources. The **same** server is consumed by the GCP/ADK
-agent (via `MCPToolset`), by Claude Code locally, or by any MCP client — this is what keeps
-the wiki portable across clouds (see [`../docs/architecture.md`](../docs/architecture.md)).
-
-It wraps [`wiki_repo.py`](wiki_repo.py), which parses the Markdown + YAML front matter,
-answers structured queries, runs the CI validator, and opens PRs for writes.
+A vendor-neutral [Model Context Protocol](https://modelcontextprotocol.io) server that exposes
+the wiki as tools. It wraps [`wiki_repo.py`](wiki_repo.py) (parses the Markdown + front matter,
+runs the validator). The same server works in your platform's **MCP slot**, in Claude Code, or
+any MCP client.
 
 ## Tools
 
-| Tool | Role | Purpose |
-|------|------|---------|
-| `list_documents(type, model, status)` | read | Filtered front-matter summaries. |
-| `get_document(doc_id)` | read | Full front matter + body. |
-| `get_traceability(model_id)` | read | methodology → BR → spec (+ concepts) chain. |
-| `find_gaps()` | read | Docs not `complete` / with `open_questions` (the "unknowns"). |
-| `find_stale(year)` | read | Docs whose `review_year` is older than `year`. |
-| `references(doc_id)` | read | Inbound + outbound links (traceability / orphans). |
-| `search_wiki(query, k)` | read | Keyword search (swap for embeddings later). |
-| `validate()` | read | Run `tools/validate_wiki.py`. |
-| `propose_document(rel_path, content, message)` | write | Open a PR — **never** commits to main. |
+| Tool | Purpose |
+|------|---------|
+| `list_documents(type, model, status)` | Filtered front-matter summaries. |
+| `get_document(doc_id)` | Full front matter + body. |
+| `get_traceability(model_id)` | concept → BR → spec (+ manuals) chain. |
+| `find_gaps()` | Docs not `complete` / with `open_questions` (the "unknowns"). |
+| `find_stale(year)` | Docs whose `review_year` is older than `year`. |
+| `references(doc_id)` | Inbound + outbound links. |
+| `search_wiki(query, k)` | Keyword search (swap for embeddings later). |
+| `validate()` | Run `tools/validate_wiki.py`. |
+| `propose_document(...)` | Open a PR — **only registered when `MCP_READONLY` is unset**. |
 
-Resources: `wiki://schema` (SCHEMA.md), `wiki://manual` (CLAUDE.md).
+Resources: `wiki://schema`, `wiki://manual`.
 
-## Run locally (stdio — works with Claude Code)
+## Deploy to the platform's MCP slot (platform hosts the container)
+
+The [`Dockerfile`](Dockerfile) builds a **self-contained** image: it bakes the wiki content in
+(POC snapshot — rebuild to refresh), serves over HTTP, and is **read-only** (`MCP_READONLY=1`,
+so the write tool is dropped). No git token needed.
+
+```bash
+# build from the REPO ROOT (context = repo root)
+docker build -f mcp_server/Dockerfile -t ccprm-wiki-mcp .
+```
+
+Give that image (or this repo + Dockerfile path) to the MCP slot. Defaults baked in:
+
+| Env | Value | Meaning |
+|-----|-------|---------|
+| `MCP_TRANSPORT` | `streamable-http` | HTTP transport. Set to `sse` if your platform expects the `/sse` endpoint instead. |
+| `PORT` | `8080` | The platform usually injects its own `PORT`; the server honours it. |
+| `MCP_READONLY` | `1` | Drops `propose_document` — the hosted server can only read. |
+| `WIKI_ROOT` | `/app` | The baked-in wiki content. |
+
+**Endpoint to register with the Agent:** the platform will show the MCP's URL after it boots.
+For `streamable-http` the path is typically `/mcp`; for `sse` it is `/sse`. Use whichever your
+platform asks for (match `MCP_TRANSPORT` to it).
+
+> To refresh content after merging an ingest PR, rebuild the image (snapshot). Later you can
+> switch to clone-on-start (set `WIKI_REPO_URL` + a read token) or a mounted volume + redeploy
+> on merge.
+
+## Run locally (stdio — Claude Code)
 
 ```bash
 pip install -r mcp_server/requirements.txt
 WIKI_ROOT="$(pwd)" python mcp_server/server.py
 ```
-
-Register it with Claude Code (`.mcp.json` or `claude mcp add`) pointing at that command.
-
-## Run as a service (SSE — for the GCP agent)
-
-```bash
-WIKI_ROOT="$(pwd)" MCP_TRANSPORT=sse python mcp_server/server.py
-```
-
-## Deploy to Cloud Run
-
-```bash
-gcloud run deploy ccprm-wiki-mcp \
-  --source . \
-  --set-env-vars MCP_TRANSPORT=sse,WIKI_REPO_URL=https://github.com/heyaozh/company-llm-wiki.git \
-  --region europe-west1 --no-allow-unauthenticated
-```
-
-Put the GitHub token in Secret Manager and mount it; the write path (`propose_document`)
-needs `git` + `gh` auth. Read-only deployments can omit the token entirely.
