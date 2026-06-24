@@ -16,6 +16,7 @@ One document = one Markdown file with a YAML front-matter block.
 | `methodology` | `methodology/` | `meth-<slug>.md` |
 | `business_requirement` | `business-requirements/` | `br-<slug>.md` |
 | `specification` | `specifications/` | `spec-<slug>.md` |
+| `concept` | `concepts/` | `concept-<slug>.md` |
 | `model` (overview page) | `models/` | `model-<slug>.md` |
 
 Rules:
@@ -35,7 +36,7 @@ Rules:
 ```yaml
 ---
 id: meth-example                 # must equal the filename stem
-type: methodology                # methodology | business_requirement | specification | model
+type: methodology                # methodology | business_requirement | specification | concept | model
 title: "Human-readable title"
 model: model-example             # the model this doc belongs to (must exist in models/)
 status: draft                    # draft | review | stable | deprecated
@@ -50,7 +51,8 @@ tags: []                         # free-form facets for filtering
 ---
 ```
 
-`model:` is omitted only on `type: model` pages themselves (a model page *is* the model).
+`model:` is omitted on `type: model` pages (a model page *is* the model) and on
+`type: concept` pages (a concept is model-agnostic and shared across models).
 
 ### 2.2 Traceability fields (the reference graph)
 
@@ -58,7 +60,8 @@ Add the field(s) matching the document type. Every referenced `id` must exist.
 
 | Type | Required link field | Points to | Meaning |
 |------|--------------------|-----------|---------|
-| `methodology` | — (root of the chain) | — | Theory. May use `references` for related methodology. |
+| `methodology` | — (root of the chain) | — | Theory. Use `references` for related methodology and the `concept` notes it distills into. |
+| `concept` | — (shared vocabulary) | — | Atomic primitive. Use `references` to link related concepts / methodology. Model-agnostic. |
 | `business_requirement` | `derives_from: [meth-...]` | one or more `methodology` | The theory this requirement is based on. |
 | `specification` | `implements: [br-...]` | one or more `business_requirement` | The requirement this design realises. |
 
@@ -74,7 +77,7 @@ Downstream links (`implemented_by`, etc.) are **derived** by tooling, not hand-m
 
 Do not invent values for these fields.
 
-- **`type`**: `methodology` · `business_requirement` · `specification` · `model`
+- **`type`**: `methodology` · `business_requirement` · `specification` · `concept` · `model`
 - **`status`**: `draft` · `review` · `stable` · `deprecated`
 - **`completeness`**: `complete` · `partial` · `theory_only`
 
@@ -127,6 +130,14 @@ sourced answer, and should surface the relevant `open_questions`.
 1. **Overview** — what the model is, one paragraph.
 2. **Traceability** — links to its methodology / requirements / specifications.
 3. **Status & review** — current `status`, last review.
+
+### 5.5 `concept`
+1. **Definition** — precise, atomic definition (LaTeX where it helps).
+2. **Why it matters** — how the concept is used across models / risk management.
+3. **Used by** — links to the methodology / specifications that rely on it.
+4. **Related concepts** — links to neighbouring concepts.
+
+One atomic idea per file; model-agnostic. See `CLAUDE.md` §5 for the distillation rule.
 
 ---
 

@@ -30,13 +30,20 @@ methodology  ──derives_from──▶  business_requirement  ──implements
 | `methodology` | [`methodology/`](methodology/) | The theory and mathematical models. **We start here.** |
 | `business_requirement` | [`business-requirements/`](business-requirements/) | Requirements on IT derived from a methodology. |
 | `specification` | [`specifications/`](specifications/) | The IT design that implements a business requirement. |
+| `concept` | [`concepts/`](concepts/) | Atomic, model-agnostic primitives **distilled** from methodology docs (shared vocabulary). |
 
 A **model** (e.g. an initial-margin model) is the spine that links one chain together. Each
 model has an overview page under [`models/`](models/) that aggregates its methodology →
-requirements → specifications.
+requirements → specifications. **Concepts** are the reusable building blocks the methodology
+documents are distilled into — one idea per note, shared across models.
+
+The agent that maintains this repo follows [`CLAUDE.md`](CLAUDE.md) (operating manual:
+query scope, the `/ingest` · `/lint` · `/reindex` workflows, the "don't guess" rule, and the
+human-review-note protocol). [`SCHEMA.md`](SCHEMA.md) is the structural contract beneath it.
 
 ```
 company-llm-wiki/
+├── CLAUDE.md                 # agent operating manual (workflows + guardrails)
 ├── SCHEMA.md                 # the contract (front matter, vocab, rules)
 ├── CONTRIBUTING.md           # how to add / update a document + annual review
 ├── index.md                  # map of content (registered models & documents)
@@ -44,6 +51,7 @@ company-llm-wiki/
 ├── methodology/              # ← we begin populating here
 │   ├── index.md
 │   └── _TEMPLATE.md
+├── concepts/                 # atomic primitives distilled from methodology
 ├── business-requirements/    # scaffolded, populated later
 ├── specifications/           # scaffolded, populated later
 ├── models/                   # one overview page per model

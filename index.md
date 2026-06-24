@@ -25,6 +25,14 @@ them here:
 - [meth-<slug>](methodology/meth-<slug>.md) — one-line summary · model · status
 ```
 
+## Concepts
+
+_None yet._ Atomic primitives distilled from methodology documents:
+
+```
+- [concept-<slug>](concepts/concept-<slug>.md) — one-line definition · status
+```
+
 ## Business requirements
 
 _Scaffolded; to be populated later._

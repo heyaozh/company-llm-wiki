@@ -28,12 +28,14 @@ TYPE_DIRS = {
     "methodology": "methodology",
     "business_requirement": "business-requirements",
     "specification": "specifications",
+    "concept": "concepts",
     "model": "models",
 }
 ID_PREFIX = {
     "methodology": "meth-",
     "business_requirement": "br-",
     "specification": "spec-",
+    "concept": "concept-",
     "model": "model-",
 }
 STATUS = {"draft", "review", "stable", "deprecated"}
@@ -116,8 +118,9 @@ def main() -> int:
 
     for stem, (path, fm) in docs.items():
         dtype = fm.get("type")
-        # model linkage (every non-model doc must point at an existing model page)
-        if dtype != "model":
+        # model linkage (every model-bound doc must point at an existing model page;
+        # `model` and `concept` pages are model-agnostic and exempt)
+        if dtype not in ("model", "concept"):
             model = fm.get("model")
             if not model:
                 errors.append(f"{path}: missing 'model'")
