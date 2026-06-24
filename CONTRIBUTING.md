@@ -7,13 +7,19 @@ How to add and maintain documents in the CCPRM Model & Analytics wiki. All conte
 
 ## Add a new document
 
-1. Pick the type and copy the matching template:
-   - methodology → `methodology/_TEMPLATE.md` → `methodology/meth-<slug>.md`
-   - business requirement → `business-requirements/_TEMPLATE.md` → `br-<slug>.md`
-   - specification → `specifications/_TEMPLATE.md` → `spec-<slug>.md`
-2. Set `id` to the filename stem (without `.md`).
-3. Fill the front matter. Set `model:` to an existing model id (create the model page under
-   `models/` first if needed).
+1. Pick the type and copy the matching template from its folder (see [`SCHEMA.md`](SCHEMA.md)
+   §1 for the full list of types / folders / id prefixes). For example:
+   - concept → `internal/concept/_TEMPLATE.md` → `internal/concept/con-<slug>.md`
+   - business requirement → `internal/business-requirements/_TEMPLATE.md` → `br-<slug>.md`
+   - specification → `internal/specifications/_TEMPLATE.md` → `spec-<slug>.md`
+   - model overview → `knowledge/model/_TEMPLATE.md` → `model-<slug>.md`
+   - distilled topic → `knowledge/topic/_TEMPLATE.md` → `topic-<slug>.md`
+   - external source → `external/<regulation|paper|article|other>/_TEMPLATE.md`
+2. Set `id` to the filename stem (without `.md`), with the correct prefix.
+3. Fill the front matter. For internal docs set `parent` (its place in the
+   policy→framework→concept→manual tree); for a `concept` set `concept_kind`
+   (methodology/pricing/risk) and, if it describes a model, `model:` (create the model page
+   under `knowledge/model/` first if needed).
 4. Add the traceability link for the type (`derives_from` for BR, `implements` for spec).
 5. Write the body following the section structure in `SCHEMA.md` §5.
 6. **Do not guess.** Cite sources in `source_refs`; put every unknown in `open_questions`
@@ -49,9 +55,9 @@ Once per year the team reviews each model's chain:
 `tools/validate_wiki.py` checks, on every push and PR:
 
 - front matter completeness and controlled vocabulary,
-- `id` matches filename,
-- every `model` / `derives_from` / `implements` / `references` id exists (no dangling links),
-- the traceability chain is unbroken (spec→BR, BR→methodology).
+- `id` matches filename and has the correct prefix/folder,
+- every `model` / `parent` / `derives_from` / `implements` / `references` id exists (no dangling links),
+- `concept` has a `concept_kind`; the chain is unbroken (spec→BR, BR→concept).
 
 Run it locally before pushing:
 

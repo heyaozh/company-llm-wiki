@@ -19,11 +19,18 @@ import sys
 import yaml
 
 DOC_DIRS = {
-    "methodology": "methodology",
-    "business_requirement": "business-requirements",
-    "specification": "specifications",
-    "concept": "concepts",
-    "model": "models",
+    "policy": "internal/policy",
+    "framework": "internal/framework",
+    "concept": "internal/concept",
+    "manual": "internal/manual",
+    "business_requirement": "internal/business-requirements",
+    "specification": "internal/specifications",
+    "regulation": "external/regulation",
+    "paper": "external/paper",
+    "article": "external/article",
+    "other": "external/other",
+    "model": "knowledge/model",
+    "topic": "knowledge/topic",
 }
 
 
@@ -99,9 +106,9 @@ class WikiRepo:
                 "path": str(doc.path.relative_to(self.root)), "body": doc.body}
 
     def traceability(self, model_id: str) -> dict:
-        """methodology -> business_requirement -> specification chain for a model."""
-        by_type = {t: [] for t in ("methodology", "business_requirement",
-                                    "specification", "concept")}
+        """concept -> business_requirement -> specification chain (plus manuals) for a model."""
+        by_type = {t: [] for t in ("concept", "manual",
+                                    "business_requirement", "specification")}
         for doc in self._docs.values():
             if doc.front.get("model") == model_id and doc.type in by_type:
                 by_type[doc.type].append(self._summary(doc))

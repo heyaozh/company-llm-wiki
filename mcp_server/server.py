@@ -27,7 +27,8 @@ mcp = FastMCP("ccprm-wiki")
 def list_documents(type: str = "", model: str = "", status: str = "") -> list[dict]:
     """List wiki documents, optionally filtered by type / model / status.
 
-    type is one of: methodology, business_requirement, specification, concept, model.
+    type is one of: policy, framework, concept, manual, business_requirement,
+    specification, regulation, paper, article, other, model, topic.
     Returns front-matter summaries only (id, title, status, completeness, ...).
     """
     return repo.list_documents(type=type, model=model, status=status)
@@ -85,7 +86,7 @@ def propose_document(rel_path: str, content: str, message: str) -> dict:
     """Write a document on a new branch and open a Pull Request. NEVER commits to
     main: CI gates the PR and a human reviews it. Requires git + `gh` auth.
 
-    rel_path example: 'methodology/meth-initial-margin.md'
+    rel_path example: 'internal/concept/con-initial-margin.md'
     """
     return repo.open_pr(rel_path, content, message)
 

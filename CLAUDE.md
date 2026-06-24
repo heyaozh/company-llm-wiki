@@ -1,17 +1,12 @@
 # CLAUDE.md — CCPRM Model & Analytics Wiki Operating Manual
 
 This repository is an **LLM-maintained knowledge base** for the **Model & Analytics** team
-under **CCPRM (Central Clearing Counterparty Risk Management)**. The team holds
-**methodology (theory & mathematical model)** documents and distills them into atomic,
-interconnected **concept** notes plus a tracked library of methodology →
-business-requirement → specification documents. The pattern is deliberate: a methodology doc
-is distilled into reusable concepts the same way a research paper is distilled into concepts.
+under **CCPRM (Central Clearing Counterparty Risk Management)**. It mirrors our company
+documents, tracks external sources, and distills both into atomic, interconnected knowledge.
 
-**Before doing anything, read [`SCHEMA.md`](SCHEMA.md)** — the strict contract for file
-structure, YAML front matter, controlled vocabulary, and lint rules. *This* file is the
-**operational layer**: what to read, what to touch, and how the recurring workflows run.
-
-Working language is **English** for all content, fields, identifiers, and commit messages.
+**Before doing anything, read [`SCHEMA.md`](SCHEMA.md)** — the structural contract (types,
+folders, front matter, vocabulary, lint rules). *This* file is the **operational layer**: what
+to read, what to touch, how the workflows run. Working language is **English**.
 
 ---
 
@@ -19,98 +14,78 @@ Working language is **English** for all content, fields, identifiers, and commit
 
 | Surface | Path | Default behaviour |
 |---------|------|-------------------|
-| **Curated wiki** | `methodology/`, `business-requirements/`, `specifications/`, `concepts/`, `models/` | **Default scope** — the only source of "facts" for Q&A, summaries, and agent answers. |
-| **Raw sources** | The team's original documents (Confluence / SharePoint / Databricks / shared drive) — **not in this repo** | Read **only** during `/ingest` or explicit source lookup. Never the default answer source; never rewritten here. |
+| **Internal** | `internal/` (policy, framework, concept, manual, business-requirements, specifications) | Our own documents — **the golden source** for our models. Default answer scope. |
+| **External** | `external/` (regulation, paper, article, other) | Outside material we track. Summarise & link; **never** treat its text as our golden source. |
+| **Knowledge** | `knowledge/` (model, topic) | Our **distilled** layer — model overviews + atomic topics. Default answer scope. |
+| **Raw sources** | original PDFs in SharePoint / GCS — **not in this repo** | Read **only** during `/ingest` or explicit lookup; never rewritten here. |
 | **Metadata** | `SCHEMA.md`, `index.md`, `log.md` | Structure & operations. |
 
-**Never fabricate.** Answer only from the curated wiki. When the wiki has no sourced answer,
-reply **"not documented"** and surface the relevant `open_questions` — do not infer data
-schemas, numerical results, or implementation details that are not in a `source_refs`
-document. This is the hard "don't guess" rule (`SCHEMA.md` §4).
+**Never fabricate.** Answer from internal + knowledge (and external as cited references). When
+the wiki has no sourced answer, reply **"Not documented."** and surface the relevant
+`open_questions` — never invent data schemas, results, or implementation details
+(`SCHEMA.md` §5).
+
+> Note on names: the internal hierarchy has a level literally called **concept**
+> (methodology/pricing/risk). Our distilled atomic primitives are **`topic`** (under
+> `knowledge/`), *not* `concept`. Keep the two distinct.
 
 ---
 
 ## 2. Recurring workflows
 
-Invoke these by name (e.g. "run `/ingest <doc>`"). Each is a procedure, not a black box.
-
-- **`/ingest <source path | link>`** — Distill a source methodology document into a
-  `methodology` note **and** extract the atomic `concept` notes it rests on. Full pipeline in §4.
-- **`/lint`** — Run `python tools/validate_wiki.py` plus the review checks below; report only,
-  never auto-delete. Flag: dangling references, broken traceability chains, stale
-  `review_year`, `completeness` ≠ `complete` with empty `open_questions`, and **orphan
-  concepts** (a concept with no inbound link from any methodology/spec/other concept).
-- **`/reindex`** — Rebuild [`index.md`](index.md) from every document's front matter (models,
-  methodology, concepts, requirements, specifications).
+- **`/ingest <source>`** — Distill a source document into the right internal doc(s) **and** the
+  knowledge layer (model + topics). Pipeline in §4.
+- **`/lint`** — Run `python tools/validate_wiki.py` plus checks for stale `review_year`,
+  `completeness` vs `open_questions`, and orphan topics. Report only; never auto-delete.
+- **`/reindex`** — Rebuild [`index.md`](index.md) and the per-folder `index.md` files from
+  front matter.
 
 ---
 
 ## 3. Human review notes are sacred
 
-The wiki **body** is the agent's golden source. Reviewers (humans) layer **annotations** on
-top — questions, caveats, sign-off notes. These are **not** golden source.
-
-- A human note is written as a `> [!review]` callout or an inline `<!-- review: … -->`
-  comment.
-- **Never** distill, quote, or propagate a review note as fact.
-- **Never** delete, move, or reword a review note. Only the author removes it.
-- When an edit removes the text a note refers to, keep the note and mark the old text
-  `~~struck~~` rather than dropping it.
-
-Preserve every `[!review]` callout and `<!-- review … -->` comment verbatim when re-editing
-a page.
+Reviewers layer annotations on top of documents as `> [!review]` callouts or
+`<!-- review: … -->` comments. These are **not** golden source: never distill, quote as fact,
+delete, move, or reword them. Only the author removes them. If an edit removes the text a note
+refers to, keep the note and mark the old text `~~struck~~`. Preserve them verbatim on re-edit.
 
 ---
 
-## 4. Ingest pipeline (methodology → wiki + concepts)
+## 4. Ingest pipeline (source → internal + knowledge)
 
-Runs on whatever LLM/agent maintains the repo; uses only Markdown + Python + Git.
-
-1. **Read the source.** The agent is given a path or link to the original methodology
-   document. Read it; do not copy it into the repo (raw sources live in the team's doc system).
-2. **Identify the model.** Determine which model it belongs to. Create or find the model page
-   `models/model-<slug>.md` (the spine of the traceability chain).
-3. **Create / update the methodology note.** `methodology/meth-<slug>.md` per `SCHEMA.md`
-   §5.1. If a note for this source exists, **update it** (keep `id`, bump `version`, update
-   `last_reviewed` / `review_year`) — do not duplicate. Set `source_refs` to the source.
-   Set `completeness` honestly and record every unknown in `open_questions`. **Do not guess**
-   data fields, results, or IT details.
-4. **Distill atomic concepts.** Pull the reusable primitives the document rests on (e.g. an
-   initial-margin measure, an expected-shortfall estimator, a simulation scheme) into
-   `concepts/concept-<slug>.md` — **one concept per file**, model-agnostic. Create if missing,
-   update if it exists. Cross-link methodology ↔ concept.
-5. **Link.** Connect the new note to **at least two** existing wiki pages (§6 link rule).
+1. **Read the source.** Given a path/link (SharePoint / GCS). Do not copy raw files into the repo.
+2. **Place the internal document.** Decide its level in the hierarchy (`policy` / `framework` /
+   `concept` / `manual`) and, for a `concept`, its `concept_kind` (methodology/pricing/risk).
+   Set `parent` to its place in the tree. If a doc for this source exists, **update** it (keep
+   `id`, bump `version`, refresh `last_reviewed`/`review_year`) — never duplicate.
+3. **Honesty.** Set `source_refs`; set `completeness` honestly; record every unknown in
+   `open_questions`. **Do not guess** data, results, or IT details.
+4. **Distill the knowledge layer.** Create/update the `model` overview page for the model, and
+   extract the atomic, model-agnostic **`topic`** notes it rests on (one topic per file; merge,
+   never duplicate). Cross-link concept ↔ model ↔ topics.
+5. **Link.** Connect every new page to **≥ 2** existing pages.
 6. **Log & reindex.** Append one line to [`log.md`](log.md); update [`index.md`](index.md).
 
-Everything in English.
+Everything in English. All writes go through a **Pull Request** (CI gates it; a human merges).
 
 ---
 
-## 5. Concept distillation rule
+## 5. Topic distillation rule
 
-A **concept** note is an **atomic, reusable, model-agnostic primitive** — the company analogue
-of a research "concept" note. It is the shared-vocabulary layer beneath the methodology
-documents:
-
-- One concept = one idea = one file. Do not bundle several concepts into one note.
-- A concept is **not** tied to a single methodology; several methodologies should link to the
-  same concept. If two notes overlap, **merge** into the existing one rather than duplicate
-  (keep its `id`).
-- Concepts carry the same honesty rules: cite `source_refs`, mark gaps in `open_questions`.
+A **`topic`** is an **atomic, reusable, model-agnostic primitive** — the renamed distilled
+layer (formerly "concept", renamed to avoid clashing with the internal *concept* level). One
+topic = one idea = one file; several models/concepts link to the same topic; merge overlaps
+into the existing topic rather than duplicating. Topics carry the same honesty rules.
 
 ---
 
 ## 6. Conventions & guardrails
 
-- **English** is the working language for every file and field.
-- **`id` = filename**; never rename casually (it breaks links).
-- **Every new page links ≥ 2 existing pages** (`SCHEMA.md` §6 cross-links). If fewer than two
-  valid targets exist, link the relevant `index.md` and note the gap.
-- **One structural edit → one line in `log.md`** (`YYYY-MM-DD — <change>`).
-- **Do not expand the controlled vocabulary** (`SCHEMA.md` §3) without explicit human approval;
-  record any approved addition in `log.md`.
-- **Annual review:** bump `version`, `review_year`, `last_reviewed`; tag the review
-  `review-YYYY` (see `CONTRIBUTING.md`).
-- **Run `/lint` before committing.** Keep diffs clean and atomic so review and yearly diffs
-  stay readable.
-- **Never guess** (`SCHEMA.md` §4). **Never delete human review notes** (§3 above).
+- **English** everywhere. **`id` = filename**, correct prefix; never rename casually.
+- **Every new page links ≥ 2 existing pages.** If too few targets exist, link the relevant
+  `index.md` and note the gap.
+- **One structural edit → one line in `log.md`.**
+- **Do not expand the controlled vocabulary** (`SCHEMA.md` §3) without explicit approval; log it.
+- **Annual review:** bump `version`/`review_year`/`last_reviewed`; tag `review-YYYY`.
+- **Run `/lint` before committing.** **All agent writes go through a PR — never write `main`.**
+- **Never guess** (`SCHEMA.md` §5). **Never delete human review notes** (§3).

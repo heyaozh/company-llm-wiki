@@ -75,7 +75,7 @@ producer/consumer separation in `CLAUDE.md`.
 |-------|-------|------|------------------|-------|
 | **WikiRoot** | gemini-2.5-flash | coordinator | Classify the request and route it. | — |
 | **WikiQA** | gemini-2.5-flash | consumer (read-only) | Grounded Q&A: model theory, requirements, specs, concepts; coverage/freshness questions. Cites doc ids. Says **"Not documented."** when unsourced. | `list_documents`, `get_document`, `get_traceability`, `find_gaps`, `find_stale`, `references`, `search_wiki` |
-| **WikiMaintainer** | gemini-2.5-pro | producer (write via PR) | `/ingest` (distill methodology → note + concepts), `/lint`, `/reindex`. Writes only through PRs. | all read tools + `validate`, `propose_document` |
+| **WikiMaintainer** | gemini-2.5-pro | producer (write via PR) | `/ingest` (distill a source into internal docs + knowledge model/topics), `/lint`, `/reindex`. Writes only through PRs. | all read tools + `validate`, `propose_document` |
 
 Start with **WikiQA only** — it delivers most of the "library / tracking" value with zero
 write risk. Enable WikiMaintainer once the read path is trusted.
@@ -91,7 +91,7 @@ Implemented in [`../mcp_server/server.py`](../mcp_server/server.py) over
 |------|------|-----------------|
 | `list_documents(type, model, status)` | structured | Filtered front-matter summaries. |
 | `get_document(doc_id)` | structured | Full front matter + body. |
-| `get_traceability(model_id)` | structured | methodology → BR → spec (+ concepts) chain. |
+| `get_traceability(model_id)` | structured | concept → BR → spec (+ manuals) chain for a model. |
 | `find_gaps()` | structured | Docs not `complete` / with `open_questions` — the **"what we don't know"** view. |
 | `find_stale(year)` | structured | Docs whose `review_year` is older than `year`. |
 | `references(doc_id)` | structured | Inbound + outbound links (traceability / orphan detection). |

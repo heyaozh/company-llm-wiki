@@ -1,42 +1,29 @@
 # Index — Map of Content
 
-A map of every registered model and document in this wiki. Keep it in sync when adding
-documents (or regenerate it from front matter with a tooling pass).
-
-Working language: **English**.
+A map of the wiki across its three surfaces. Keep in sync when adding documents (or regenerate
+from front matter). Working language: **English**.
 
 ---
 
-## Models
+## Knowledge — models
 
-_No models registered yet._ Add a model overview page under [`models/`](models/) and list it
-here, e.g.:
+- [model-black76](knowledge/model/model-black76.md) — Black-76 option pricing model for index options · draft
+- [model-crr](knowledge/model/model-crr.md) — Cox–Ross–Rubinstein binomial option pricing model · draft
 
-```
-- [model-initial-margin](models/model-initial-margin.md) — one-line description · status
-```
+## Knowledge — topics
 
-## Methodology
+_None yet._ Atomic, model-agnostic primitives distilled from documents (e.g. risk-neutral
+valuation, log-normal assumption, binomial lattice).
 
-_None yet. This is where we start._ As `methodology/meth-*.md` documents are added, list
-them here:
+## Internal — concept (methodology / pricing / risk)
 
-```
-- [meth-<slug>](methodology/meth-<slug>.md) — one-line summary · model · status
-```
+- [con-black76-option-pricing](internal/concept/con-black76-option-pricing.md) — Black-76 closed-form pricing · kind: pricing · model-black76 · draft
+- [con-crr-option-pricing](internal/concept/con-crr-option-pricing.md) — CRR binomial lattice pricing · kind: pricing · model-crr · draft
 
-## Concepts
+## Internal — policy / framework / manual / business-requirements / specifications
 
-_None yet._ Atomic primitives distilled from methodology documents:
+_None yet._ Scaffolded under `internal/`.
 
-```
-- [concept-<slug>](concepts/concept-<slug>.md) — one-line definition · status
-```
+## External — regulation / paper / article / other
 
-## Business requirements
-
-_Scaffolded; to be populated later._
-
-## Specifications
-
-_Scaffolded; to be populated later._
+_None yet._ Scaffolded under `external/`.

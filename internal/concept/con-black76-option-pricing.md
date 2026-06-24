@@ -1,19 +1,23 @@
 ---
-id: meth-black76-option-pricing
-type: methodology
+id: con-black76-option-pricing
+type: concept
 title: "Black-76 Option Pricing Model"
+parent: ""
+concept_kind: pricing
 model: model-black76
 status: draft
 owner: dl625
-version: 1
+version: 2
 review_year: 2026
 last_reviewed: 2026-06-24
 completeness: theory_only
 open_questions:
+  - "Confirm concept_kind: this is set to `pricing`; switch to `methodology` if your taxonomy classes pricing-model theory there."
+  - "Parent framework id is not yet set (which framework this concept sits under)."
   - "Exact index option products and contract specs this model covers are not documented here."
   - "Source/vendor of the volatility, forward and discount-rate inputs is not documented."
   - "How the option value feeds the margin methodology (downstream BR/spec) is not documented."
-  - "Any firm-specific conventions or adjustments to standard Black-76 must be verified against the source PDF."
+  - "Verify the theory below against the source PDF and correct any firm-specific conventions."
   - "SharePoint link for the source PDF to be added to source_refs."
 source_refs:
   - "black76 option pricing model.pdf (local; upload to SharePoint and replace with the link)"
@@ -33,7 +37,7 @@ Black-76 (Black, 1976) is the standard closed-form model for European options wr
 underlying is the forward price F, the model needs no separate dividend/carry term. We use it
 to value many index options.
 
-## Theory & mathematical model
+## Theory / content
 Let F be the forward price of the underlying, K the strike, r the risk-free rate, T the time
 to expiry, σ the volatility, and N(·) the standard normal cumulative distribution function.
 
@@ -50,13 +54,9 @@ $$ d_1 = \frac{\ln(F/K) + \tfrac{1}{2}\sigma^2 T}{\sigma\sqrt{T}}, \qquad d_2 = 
 The model assumes the forward price is log-normally distributed at expiry.
 
 ## Inputs & data
-The model requires: forward price F, strike K, time to expiry T, volatility σ, and a discount
-rate r. The specific data sources used in our implementation are not documented here (see
+Requires: forward price F, strike K, time to expiry T, volatility σ, and a discount rate r.
+The specific data sources used in our implementation are not documented here (see
 open_questions).
-
-## Outputs & usage
-Produces the option present value (and, by differentiation, the Greeks). Used for valuation of
-index options; the precise link into the margin methodology is not yet documented.
 
 ## Assumptions & limitations
 - European exercise only; no early exercise.
@@ -64,5 +64,6 @@ index options; the precise link into the margin methodology is not yet documente
 - Log-normal forward price; frictionless, arbitrage-free markets.
 - A single volatility per option — does not by itself capture the volatility smile/skew.
 
-## References
-- [Black-76 model overview](../models/model-black76.md) — the model this methodology belongs to.
+## Relationships
+- **Model:** [Black-76 model overview](../../knowledge/model/model-black76.md).
+- **Related concept:** [CRR Option Pricing Model](con-crr-option-pricing.md) — another option-valuation model (lattice vs closed-form).
