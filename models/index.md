@@ -9,8 +9,4 @@ specification must reference one of these ids.
 
 ## Registered models
 
-_None yet._ As models are added, list them here:
-
-```
-- [model-<slug>](model-<slug>.md) — one-line description · status
-```
+- [model-black76](model-black76.md) — Black-76 option pricing model for index options · draft

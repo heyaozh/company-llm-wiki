@@ -8,8 +8,4 @@ Each document is `meth-<slug>.md` and follows [`../SCHEMA.md`](../SCHEMA.md) §5
 
 ## Documents
 
-_None yet._ As methodology documents are added, list them here:
-
-```
-- [meth-<slug>](meth-<slug>.md) — one-line summary · model · status · completeness
-```
+- [meth-black76-option-pricing](meth-black76-option-pricing.md) — standard Black-76 closed-form pricing for European options on a forward · model-black76 · draft · theory_only
