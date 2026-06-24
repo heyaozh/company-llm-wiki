@@ -16,6 +16,7 @@ source_refs:
   - "REPLACE - CRR model source document (local PDF; upload to SharePoint and link)"
 references:
   - con-crr-option-pricing
+  - topic-risk-neutral-valuation
 tags: [valuation, options, lattice]
 ---
 
@@ -37,7 +38,7 @@ Black-76 as the number of steps grows.
 - **Business requirements / specifications:** _none yet_
 
 ## Distilled topics
-- _none yet_ — to be extracted (e.g. risk-neutral valuation, binomial lattice, early exercise).
+- [Risk-neutral valuation](../topic/topic-risk-neutral-valuation.md) — the discounted-expectation pricing principle this model evaluates numerically by backward induction.
 
 ## Status & review
 Draft, last reviewed 2026-06-24. Theory only — products covered, step settings, and downstream

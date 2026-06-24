@@ -12,8 +12,7 @@ from front matter). Working language: **English**.
 
 ## Knowledge — topics
 
-_None yet._ Atomic, model-agnostic primitives distilled from documents (e.g. risk-neutral
-valuation, log-normal assumption, binomial lattice).
+- [topic-risk-neutral-valuation](knowledge/topic/topic-risk-neutral-valuation.md) — discounted-expectation pricing principle shared by Black-76 and CRR · partial
 
 ## Internal — concept (methodology / pricing / risk)
 

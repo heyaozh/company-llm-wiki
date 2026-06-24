@@ -6,4 +6,4 @@ Each document is `topic-<slug>.md` and follows [`../../SCHEMA.md`](../../SCHEMA.
 
 ## Documents
 
-_None yet._
+- [topic-risk-neutral-valuation](topic-risk-neutral-valuation.md) — discounted-expectation pricing principle shared by Black-76 and CRR · partial

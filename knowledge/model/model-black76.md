@@ -15,6 +15,7 @@ source_refs:
   - "black76 option pricing model.pdf (local; upload to SharePoint and replace with the link)"
 references:
   - con-black76-option-pricing
+  - topic-risk-neutral-valuation
 tags: [valuation, options, index-options]
 ---
 
@@ -34,7 +35,7 @@ valuation to margin.
 - **Business requirements / specifications:** _none yet_
 
 ## Distilled topics
-- _none yet_ — to be extracted (e.g. forward price, risk-neutral valuation, log-normal assumption).
+- [Risk-neutral valuation](../topic/topic-risk-neutral-valuation.md) — the discounted-expectation pricing principle this model evaluates in closed form.
 
 ## Status & review
 Draft, last reviewed 2026-06-24. Theory only — downstream IT/data and margin linkage not yet
