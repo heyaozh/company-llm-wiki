@@ -128,6 +128,23 @@ Requirement: we have the theory but not all downstream detail; the agent must no
 
 ---
 
+## 6b. Ingest pipeline ([`../ingest/`](../ingest/))
+
+The producer path is a **deterministic Vertex AI pipeline**, not a free-roaming agent:
+
+```
+source PDF in GCS ──▶ Gemini (Vertex AI) reads it ──▶ structured JSON (schema_models.Ingest)
+                                                            │  Python assembles + links
+                                                            ▼
+                       concept + model + topics  ──▶ validate_wiki.py ──▶ PR ──▶ human review ──▶ merge
+```
+
+Why a pipeline and not a chat agent: Gemini does only *content extraction* (faithful to the
+PDF, unknowns forced into `open_questions`); Python owns the front matter, ids, cross-links,
+and validation. The result is a reviewable PR — the agent never writes `main`. The same
+`extract()` / `open_pr()` functions can later be wrapped as tools for the `WikiMaintainer`
+agent for a conversational front end.
+
 ## 7. Deployment (GCP)
 
 | Component | Target | Notes |
