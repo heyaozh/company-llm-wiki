@@ -130,20 +130,22 @@ Requirement: we have the theory but not all downstream detail; the agent must no
 
 ## 6b. Ingest pipeline ([`../ingest/`](../ingest/))
 
-The producer path is a **deterministic Vertex AI pipeline**, not a free-roaming agent:
+The producer path is a **deterministic pipeline**, not a free-roaming agent:
 
 ```
-source PDF in GCS ──▶ Gemini (Vertex AI) reads it ──▶ structured JSON (schema_models.Ingest)
-                                                            │  Python assembles + links
-                                                            ▼
-                       concept + model + topics  ──▶ validate_wiki.py ──▶ PR ──▶ human review ──▶ merge
+local PDF ──▶ extract text (pypdf) ──▶ Gemini via company gateway (OpenAI-compatible)
+                                              │  structured JSON (schema_models.Ingest)
+                                              ▼
+              concept + model + topics ──▶ validate_wiki.py ──▶ PR ──▶ human review ──▶ merge
 ```
 
-Why a pipeline and not a chat agent: Gemini does only *content extraction* (faithful to the
-PDF, unknowns forced into `open_questions`); Python owns the front matter, ids, cross-links,
-and validation. The result is a reviewable PR — the agent never writes `main`. The same
-`extract()` / `open_pr()` functions can later be wrapped as tools for the `WikiMaintainer`
-agent for a conversational front end.
+Model access is the firm's **OpenAI-compatible gateway** (`base_url` + key, corporate TLS) via
+[`../ingest/gateway.py`](../ingest/gateway.py) — not the public Google API. Why a pipeline and
+not a chat agent: Gemini does only *content extraction* (faithful to the source, unknowns
+forced into `open_questions`); Python owns the front matter, ids, cross-links, and validation.
+The result is a reviewable PR — never a direct write to `main`. It runs as a plain Python job
+on the internal platform (no "create Agent" slot needed). The same `extract()` / `open_pr()`
+functions can later be wrapped as tools for an interactive agent.
 
 ## 7. Deployment (GCP)
 

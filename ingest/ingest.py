@@ -1,62 +1,68 @@
 #!/usr/bin/env python3
-"""GCP ingest pipeline.
+"""Ingest pipeline (company OpenAI-compatible gateway).
 
-Read a source PDF with Gemini (Vertex AI), draft SCHEMA-compliant wiki documents
-(one concept + one model overview + N distilled topics), wire the cross-links,
-validate, and open a Pull Request for human review.
+Extract a source PDF's text locally, ask Gemini (via the company gateway) to
+distill it into SCHEMA-compliant documents (one concept + one model overview +
+N topics) as structured JSON, assemble + cross-link the files, validate, and
+open a Pull Request for human review.
 
 Faithful by design: the prompt forbids guessing (unknowns -> open_questions) and
 the output is a PR, never a direct write to main.
 
 Usage:
-    python ingest/ingest.py \
-        --source gs://ccprm-model-sources/black76.pdf \
-        --owner dl625 \
-        --project my-gcp-project --location europe-west1
+    export GATEWAY_BASE_URL=https://company.com/api
+    export GATEWAY_API_KEY=...           # never commit
+    python ingest/ingest.py --source "black76 option pricing model.pdf" --owner dl625 --dry-run
 
-Requires: google-genai, pyyaml; git + `gh` for the PR; Vertex AI enabled.
+Requires: openai, httpx, pypdf, pydantic, pyyaml; git + `gh` for the PR.
 """
 from __future__ import annotations
 
 import argparse
 import datetime
+import json
 import pathlib
 import subprocess
 import sys
 
 import yaml
-from google import genai
-from google.genai import types
+from pypdf import PdfReader
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from gateway import chat_client
 from prompt import EXTRACTION_PROMPT
 from schema_models import Ingest
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DATE = datetime.date.today().isoformat()
 YEAR = datetime.date.today().year
+MAX_CHARS = 200_000  # guard against overflowing the context; chunk huge docs later
 
 
-# ---------- Gemini extraction ----------
-def read_pdf_part(src: str):
-    if src.startswith(("gs://", "https://", "http://")):
-        return types.Part.from_uri(file_uri=src, mime_type="application/pdf")
-    data = pathlib.Path(src).read_bytes()
-    return types.Part.from_bytes(data=data, mime_type="application/pdf")
+# ---------- extraction ----------
+def pdf_text(path: str) -> str:
+    reader = PdfReader(path)
+    return "\n\n".join((page.extract_text() or "") for page in reader.pages)
 
 
-def extract(src: str, project: str, location: str, gemini: str) -> Ingest:
-    client = genai.Client(vertexai=True, project=project, location=location)
-    resp = client.models.generate_content(
-        model=gemini,
-        contents=[read_pdf_part(src), EXTRACTION_PROMPT],
-        config=types.GenerateContentConfig(
-            temperature=0,
-            response_mime_type="application/json",
-            response_schema=Ingest,
-        ),
+def extract(src: str, model: str) -> Ingest:
+    text = pdf_text(src)
+    if not text.strip():
+        raise SystemExit("No extractable text (scanned PDF?). OCR is needed before ingest.")
+    client = chat_client()
+    system = (EXTRACTION_PROMPT
+              + "\n\nReturn ONLY a JSON object matching this JSON schema:\n"
+              + json.dumps(Ingest.model_json_schema()))
+    resp = client.chat.completions.create(
+        model=model,
+        temperature=0,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": "SOURCE DOCUMENT (text extracted from PDF):\n\n" + text[:MAX_CHARS]},
+        ],
     )
-    return resp.parsed  # an Ingest instance
+    return Ingest.model_validate_json(resp.choices[0].message.content)
 
 
 # ---------- assemble SCHEMA-compliant files ----------
@@ -70,7 +76,6 @@ def build_files(ing: Ingest, owner: str, source_ref: str) -> dict[str, str]:
     topic_ids = [f"topic-{t.slug}" for t in ing.topics]
     files: dict[str, str] = {}
 
-    # model overview
     files[f"knowledge/model/{model_id}.md"] = _fm({
         "id": model_id, "type": "model", "title": ing.model.title,
         "status": "draft", "owner": owner, "version": 1,
@@ -84,12 +89,11 @@ def build_files(ing: Ingest, owner: str, source_ref: str) -> dict[str, str]:
         f"\n# {ing.model.title}\n\n## Overview\n{ing.model.overview}\n\n"
         f"## Documents (traceability)\n- **Concept:** "
         f"[{ing.concept.title}](../../internal/concept/{con_id}.md)\n\n"
-        "## Distilled topics\n" +
-        ("".join(f"- [{t.title}](../topic/{f'topic-{t.slug}'}.md)\n" for t in ing.topics) or "- _none_\n") +
-        f"\n## Status & review\nDraft, last reviewed {DATE}. AI-drafted from source; pending human review.\n"
+        "## Distilled topics\n"
+        + ("".join(f"- [{t.title}](../topic/topic-{t.slug}.md)\n" for t in ing.topics) or "- _none_\n")
+        + f"\n## Status & review\nDraft, last reviewed {DATE}. AI-drafted from source; pending human review.\n"
     )
 
-    # concept
     files[f"internal/concept/{con_id}.md"] = _fm({
         "id": con_id, "type": "concept", "title": ing.concept.title,
         "parent": "", "concept_kind": ing.concept.concept_kind, "model": model_id,
@@ -110,7 +114,6 @@ def build_files(ing: Ingest, owner: str, source_ref: str) -> dict[str, str]:
         f"## Relationships\n- **Model:** [{ing.model.title}](../../knowledge/model/{model_id}.md).\n"
     )
 
-    # topics
     for t in ing.topics:
         tid = f"topic-{t.slug}"
         files[f"knowledge/topic/{tid}.md"] = _fm({
@@ -128,8 +131,8 @@ def build_files(ing: Ingest, owner: str, source_ref: str) -> dict[str, str]:
     return files
 
 
-# ---------- validate + open PR ----------
-def open_pr(files: dict[str, str], branch: str, message: str) -> None:
+# ---------- validate + PR ----------
+def write_and_validate(files: dict[str, str]) -> bool:
     for rel, content in files.items():
         p = REPO / rel
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -137,8 +140,12 @@ def open_pr(files: dict[str, str], branch: str, message: str) -> None:
     v = subprocess.run([sys.executable, str(REPO / "tools" / "validate_wiki.py")],
                        cwd=REPO, capture_output=True, text=True)
     print(v.stdout)
-    if v.returncode != 0:
-        print("Validation failed — files written but NOT pushed. Fix and re-run.")
+    return v.returncode == 0
+
+
+def open_pr(files: dict[str, str], branch: str, message: str) -> None:
+    if not write_and_validate(files):
+        print("Validation failed — files written but NOT pushed. Review and fix.")
         return
     subprocess.run(["git", "checkout", "-B", branch], cwd=REPO, check=True)
     subprocess.run(["git", "add", *files.keys()], cwd=REPO, check=True)
@@ -149,25 +156,21 @@ def open_pr(files: dict[str, str], branch: str, message: str) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--source", required=True, help="gs:// URI or local path to the source PDF")
+    ap.add_argument("--source", required=True, help="local path to the source PDF")
     ap.add_argument("--owner", required=True)
-    ap.add_argument("--project", required=True, help="GCP project id")
-    ap.add_argument("--location", default="europe-west1")
-    ap.add_argument("--gemini", default="gemini-2.5-pro")
+    ap.add_argument("--model", default="gemini-2.5-pro", help="model id as named on your gateway")
     ap.add_argument("--dry-run", action="store_true", help="write files + validate, no PR")
     args = ap.parse_args()
 
-    ing = extract(args.source, args.project, args.location, args.gemini)
-    files = build_files(ing, args.owner, source_ref=args.source)
-    branch = f"ingest/{ing.model.slug}-{DATE}"
-    msg = f"Ingest {ing.model.title} from {args.source} (AI draft, pending review)"
+    ing = extract(args.source, args.model)
+    source_ref = f"{pathlib.Path(args.source).name} (local source; replace with SharePoint link)"
+    files = build_files(ing, args.owner, source_ref)
     if args.dry_run:
-        for rel, content in files.items():
-            (REPO / rel).parent.mkdir(parents=True, exist_ok=True)
-            (REPO / rel).write_text(content, encoding="utf-8")
-        print("Wrote", len(files), "file(s). Run tools/validate_wiki.py to check.")
+        write_and_validate(files)
+        print(f"Wrote {len(files)} file(s). Review them, then re-run without --dry-run to open a PR.")
         return 0
-    open_pr(files, branch, msg)
+    branch = f"ingest/{ing.model.slug}-{DATE}"
+    open_pr(files, branch, f"Ingest {ing.model.title} from {source_ref} (AI draft, pending review)")
     return 0
 
 

@@ -1,7 +1,8 @@
 """Extraction prompt for the ingest pipeline. Encodes the SCHEMA / CLAUDE.md rules."""
 
 EXTRACTION_PROMPT = """You are distilling ONE source document for the CCPRM Model & Analytics
-knowledge wiki. The attached file is the source. Produce JSON matching the provided schema.
+knowledge wiki. The source document's text is provided in the user message. Produce JSON
+matching the provided schema.
 
 ABSOLUTE RULES (do not violate):
 1. DO NOT GUESS. State only what the source document actually contains. If something is not in
