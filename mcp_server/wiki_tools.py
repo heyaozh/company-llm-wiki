@@ -11,11 +11,16 @@ Registration happens on import (the @mcp.tool decorators run), matching the temp
 example_tools.py. These are the 7 read-only Q&A tools (no write/validate tools).
 """
 import os
+import pathlib
 
 from src.mcp import mcp
 from src.tools.wiki_repo import WikiRepo
 
-repo = WikiRepo(os.environ.get("WIKI_ROOT", "wiki"))
+# Default to the repo root (this file is <repo>/src/tools/wiki_tools.py → parents[2] = repo
+# root), so the server reads internal/ external/ knowledge/ that live at the repo root in a
+# single-repo setup. Override with WIKI_ROOT (e.g. set it to "wiki" if you vendor a snapshot).
+_DEFAULT_ROOT = pathlib.Path(__file__).resolve().parents[2]
+repo = WikiRepo(os.environ.get("WIKI_ROOT", str(_DEFAULT_ROOT)))
 
 
 @mcp.tool
