@@ -1,17 +1,17 @@
 name: reindex-wiki
 category: data processing
-description: Rebuild the index map-of-content from every note's front matter; resync Memory tags.
+description: Rebuild index.md and the per-folder index.md files from front matter. Open a PR; never write main.
 
 ---
 
 # Reindex Wiki
 
-Rebuild the index as a map-of-content from every wiki note's front matter, then resync Memory.
+Rebuild the indices from document front matter.
 
 ## Steps
-1. Scan the curated wiki front matter (title, slug, type, domain, tags, updated).
-2. Regenerate `index.md` grouped by type → domain. Commit via Git MCP.
-3. Resync Memory: for each wiki note, upsert body + refresh tags from front matter.
-   Git is authoritative — if Memory and git disagree, git wins; drop Memory entries
-   that no longer have a git note.
-4. Append `YYYY-MM-DD — reindex` to `log.md`.
+1. Scan all documents' front matter (id, type, title, status, parent, model, review_year).
+2. Regenerate root `index.md` and each per-folder `index.md` (grouped by surface → type).
+3. Append `YYYY-MM-DD — reindex` to `log.md`.
+4. OPEN A PULL REQUEST with the changes. Never write `main`.
+5. (Optional) Refresh the Memory cache tags from the rebuilt front matter; git stays
+   authoritative — drop Memory entries with no backing document.

@@ -1,48 +1,48 @@
 name: ingest-source
 category: data processing
-description: Distill a raw source (PDF / SharePoint doc / blog / screenshot) into an atomic wiki note per SCHEMA, commit to git, mirror to Memory with tags.
+description: Distill a source document into the right internal doc(s) + the knowledge layer (model + topics), honestly, and open a PR. Never write main, never guess.
 
 ---
 
-# Ingest Source → Wiki Note
+# Ingest Source → Internal Doc + Knowledge Layer
 
-You turn ONE raw source into ONE distilled, atomic wiki note. The Git MCP repo is the
-source of truth; Memory is a tagged cache. ALWAYS load `SCHEMA.md` first and follow it
-verbatim.
+Distill ONE source into the wiki per `SCHEMA.md` + `CLAUDE.md`. ALWAYS read both first and
+follow them verbatim. Working language: **English**.
 
 ## Inputs (any one)
-- A PDF the user uploaded to the Knowledge base, or a file in a connected SharePoint MCP.
-- A URL (blog / arXiv / docs).
-- A screenshot (read the image directly — no OCR).
-- A chat transcript file.
+- A path/link in SharePoint or GCS, or a connected SharePoint MCP file.
+- A PDF the user uploaded to the conversation / Knowledge base.
+- A URL (regulation, paper, article).
+
+Do NOT copy raw source files into the repo. Reference them via `source_refs`.
 
 ## Steps
-1. READ the source. Screenshots → read image. URLs → fetch. PDFs → read natively
-   (do NOT convert PDF to markdown; math gets mangled).
-2. For papers: identify the underlying paper (title/authors), search for arXiv/DOI,
-   and set the Better BibTeX citekey as the slug. Confirm with the user if ambiguous.
-3. CHECK `index.md` for an existing note on this topic.
-   - If found → UPDATE it: keep `slug`, bump `updated`. Do not duplicate.
-   - Else → CREATE a new note.
-4. ARCHIVE the raw source:
-   - Papers: the PDF stays in Zotero/Knowledge base — do NOT commit PDFs to git.
-   - Non-papers (blog/screenshot/transcript): save the text as markdown under the matching
-     raw/external bucket (`external/article`, `external/paper`, etc.).
-5. DISTILL into the matching wiki path (`paper|concept|method|project`) using the matching
-   SCHEMA template:
-   - Full YAML front matter (global + the type's additions).
-   - Prose: Chinese-primary, English on technical terms.
-   - `## Key figures & formulas`: transcribe key equations to LaTeX, headline results as a
-     markdown table, extract the 1 key figure into `assets/<citekey>/` and embed by basename.
-   - Set `reading: "unread"`. NEVER set `priority`. NEVER change `reading` after this.
-   - `source_refs`: raw path(s) + URL. `zotero_link` for papers.
-6. LINK to ≥2 existing wiki notes (link rule). If <2 exist, link to index sections.
-7. COMMIT to git via the Git MCP (note + raw + assets in one commit).
-8. MIRROR to Memory: upsert the note body, with tags derived from front matter:
-   `scope:wiki`, `type:<type>`, `domain:<domain>`, `reading:unread`, plus topic tags.
-9. LOG: append `YYYY-MM-DD — ingested <slug>` to `log.md` (git).
+1. READ the full source (read PDFs natively; do not rely on RAG chunks for ingest).
+2. PLACE the internal document. Decide its level in the hierarchy
+   (`policy` / `framework` / `concept` / `manual`); for a `concept`, set `concept_kind`
+   (`methodology` | `pricing` | `risk`). Set `parent` to its place in the tree.
+   - If a doc for this source already exists → UPDATE it: keep `id`, bump `version`,
+     refresh `last_reviewed` / `review_year`. Never duplicate.
+   - `id` = filename stem, with the correct type prefix (`pol-`/`fwk-`/`con-`/`man-`/…).
+3. HONESTY (SCHEMA §5, hard rule). Set `source_refs`. Set `completeness` honestly
+   (`theory_only` | `partial` | `complete`). Record every unknown in `open_questions`.
+   **Do NOT guess** data schemas, results, or IT/implementation details.
+4. DISTILL the knowledge layer:
+   - Create/update the `model` overview page (`knowledge/model/model-<slug>.md`).
+   - Extract atomic, model-agnostic `topic` notes (`knowledge/topic/topic-<slug>.md`),
+     one idea per file; merge into an existing topic, never duplicate.
+   - Cross-link concept ↔ model ↔ topics with relative Markdown links.
+5. LINK every new page to ≥ 2 existing pages. If too few exist, link the relevant
+   `index.md` and note the gap.
+6. VALIDATE: run `python tools/validate_wiki.py` and fix any failures before proposing.
+7. LOG one line to `log.md`; update `index.md` (and per-folder index).
+8. OPEN A PULL REQUEST with all changes. **Never write `main`** — CI gates, a human merges.
+9. (Optional) Mirror distilled pages to Memory as a tagged cache: `surface:internal|knowledge`,
+   `type:<type>`, `model:<id>`. Git stays the source of truth.
 
 ## Hard rules
-- Git is written BEFORE Memory. Memory must always be reconstructable from git.
-- Preserve every `[^me-*]` footnote and `[!me]` callout verbatim (user-annotation protocol).
-- Never invent data tokens — use the SCHEMA controlled vocabulary only; `Other` requires `data_note`.
+- All writes go through a PR. Never commit to `main`.
+- Front matter must satisfy SCHEMA §2 exactly (required + type-specific fields; every id named
+  in `model`/`parent`/`derives_from`/`implements`/`references` must exist).
+- Preserve every `> [!review]` callout and `<!-- review: … -->` comment verbatim (CLAUDE §3).
+- Do not extend the controlled vocabulary (SCHEMA §3) without explicit approval.

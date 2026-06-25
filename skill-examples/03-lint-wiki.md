@@ -1,21 +1,26 @@
 name: lint-wiki
 category: logging
-description: Report-only QA pass — orphans, stale strategies, invalid enums, Other w/o data_note, orphaned user notes.
+description: Run tools/validate_wiki.py plus stale-review / completeness / orphan-topic checks. Report only; never auto-delete.
 
 ---
 
 # Lint Wiki (report only)
 
-Run the SCHEMA lint checks over the curated wiki tree (git). REPORT only — never auto-delete.
+Validate the repo against `SCHEMA.md`. REPORT only — never auto-delete or auto-fix silently.
 
-## Checks
-- Orphan pages: no inbound `[[...]]` links from other notes.
-- Stale strategies/signals: `updated` older than 6 months → "needs review".
-- Invalid enums: `data_used`/`data_required`/`data_category` not in the SCHEMA vocabulary;
-  `asset_class` not in the allowed list.
-- `Other` without `data_note`: any data list contains `Other` but `data_note` empty.
-- Orphaned user notes: a `[^me-*]` definition with no matching reference in the body.
+## Steps
+1. Run `python tools/validate_wiki.py` and report all failures, which include:
+   - missing required field; `id` ≠ filename or wrong prefix/folder;
+   - value outside the controlled vocabulary (SCHEMA §3);
+   - `concept` without `concept_kind`; `specification` without `implements`;
+     `business_requirement` without `derives_from`;
+   - any dangling reference (`model`/`parent`/`derives_from`/`implements`/`references`).
+2. Additional warnings (CLAUDE §2):
+   - non-`complete` `completeness` with empty `open_questions`;
+   - stale `review_year` (overdue annual review);
+   - orphan `topic` pages (no inbound links).
+3. Do NOT count `[!review]` content toward the link rule.
 
 ## Output
-A grouped report (one section per check) with file slugs and the specific violation.
-Do NOT count `[!me]`/`[^me-*]` content toward the link rule. Do not modify files.
+A grouped report (one section per check) with document ids and the specific violation.
+Do not modify files.
