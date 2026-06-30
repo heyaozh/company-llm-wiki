@@ -147,20 +147,26 @@ The assumption "Confluence pages are markdown-native" is **only partly true** �
 
 ## 6. Open questions for the next conversation
 
-1. **Confluence MCP capabilities** — does the internal Confluence MCP support: create/update
-   page, set page properties/labels, read version history, and **produce a version diff**? The
-   versioning agent depends on the last one.
-2. **Front-matter mapping** — settle the exact map: which SCHEMA fields become **page
-   properties** vs **labels** vs **page-tree parentage**.
-3. **Validation without CI** — port `tools/validate_wiki.py`'s checks into an **agent-side
-   pre-publish lint** (the `lint-wiki` skill), since Confluence has no PR/CI gate.
-4. **Space/tree layout** — one Confluence space with three top-level parents
-   (internal/external/knowledge), or separate spaces? Map the id-prefix scheme onto it.
-5. **Diff presentation** — on re-ingest of an existing doc, how to "mark changed parts":
-   rely on Confluence's native version diff, or have the agent emit a change summary section?
-6. **Read path for Q&A** — answer via the built-in Knowledge base RAG (indexing the published
-   Confluence pages) or via direct Confluence MCP reads? RAG is faster but lossy; direct reads
-   honor the "don't guess" rule more strictly.
+**Resolved (2026-06-30), now baked into `skill-examples/`:**
+- **#2 Front-matter mapping** — decided: structured fields → **page properties**;
+  `type`/`status`/`surface`/`tags` + `id` + `review-YYYY` → **labels**; hierarchy
+  (`parent`, surface) → **page tree**; `references`/`model`/topic links → **Confluence page
+  links**. (See `ingest-source` "Front-matter mapping".)
+- **#3 Validation without CI** — decided: ported into the `lint-wiki` skill, run **agent-side
+  pre-publish** (and on-demand audit). No CI.
+- **#4 Space/tree layout** — decided: **one space**, three top-level parent pages
+  (internal/external/knowledge); hierarchy below each via the page tree.
+- **#5 Diff presentation** — decided: rely on Confluence native version diff **plus** an
+  agent-emitted "Changes in this version" section (the section is authoritative if the MCP can't
+  diff).
+- **#6 Read path for Q&A** — decided: **direct Confluence MCP reads** (search only to locate;
+  read full body+properties before answering). Not RAG.
+
+**Still open:**
+1. **Confluence MCP capabilities** — confirm the internal Confluence MCP supports: create/update
+   page, set page properties/labels, read version history, and **produce a version diff**. The
+   skills are written to degrade gracefully if native diff is missing (the change-summary section
+   covers it), but verify the create/update/properties/labels primitives exist as assumed.
 
 ---
 
