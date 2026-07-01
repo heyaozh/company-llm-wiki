@@ -1,22 +1,21 @@
-# AGENT (Confluence) — CCPRM Model & Analytics Wiki Operating Manual
+# AGENT — CCPRM Model & Analytics Wiki Operating Manual
 
 This is the **LLM-maintained knowledge base** for the **Model & Analytics** team under **CCPRM
 (Central Clearing Counterparty Risk Management)**. It mirrors our company documents, tracks
 external sources, and distills both into atomic, interconnected knowledge.
 
-The wiki backend is **internal Confluence** (one space), maintained by Aether agents via the
-**Confluence MCP**. There is no GitHub repo, no PR, and no CI in the live system — the GitHub
-repo `company-llm-wiki` is only a staging platform for authoring the contract, skills, and
-instructions.
+The wiki lives in **internal Confluence** (one space), maintained by Aether agents via the
+**Confluence MCP**. There is no PR or CI: the gate is that every write publishes as a new
+Confluence version **under review** (see §4 / SCHEMA §8).
 
 **Before doing anything, read [`SCHEMA.md`](SCHEMA.md)** — the structural
 contract (types, page tree, page properties/labels, vocabulary, validation rules). *This* file is
 the **operational layer**: what to read, what to touch, how the workflows run. Working language
 is **English**. Security profile: **restricted** (never `privileged`).
 
-> At runtime the agent reads this contract from the **Wiki Contract** pages in the Confluence
-> space (SCHEMA + CLAUDE published there), not from any repo. The non-negotiable guardrails are
-> also inlined into the agent's custom instructions so they never depend on retrieval.
+> Both this AGENT page and SCHEMA are published as the **Wiki Contract** pages in the space;
+> read them via the Confluence MCP before any task. The non-negotiable guardrails are also
+> inlined into the agent's custom instructions so they never depend on retrieval.
 
 ---
 
@@ -28,7 +27,7 @@ is **English**. Security profile: **restricted** (never `privileged`).
 | **External** | `external` parent page (regulation, paper, article, other) | Outside material we track. Summarise & link; **never** treat its text as our golden source. |
 | **Knowledge** | `knowledge` parent page (model, topic) | Our **distilled** layer — model overviews + atomic topics. Default answer scope. |
 | **Raw sources** | original files in SharePoint / GCS — **not in Confluence** | Read **only** during `/ingest` or explicit lookup; never pasted into Confluence. |
-| **Metadata** | Wiki Contract pages (SCHEMA + CLAUDE), index page(s), Change log page | Structure & operations. |
+| **Metadata** | Wiki Contract pages (SCHEMA + AGENT), index page(s), Change log page | Structure & operations. |
 
 **Read path for Q&A = direct Confluence MCP reads** (page body + properties). Use search/RAG only
 to *locate* candidate pages, then read them in full — do not answer from chunks alone.

@@ -1,13 +1,13 @@
-# SCHEMA (Confluence) — Document Contract
+# SCHEMA — Document Contract
 
-The strict contract for every page in this wiki. The wiki backend is **internal Confluence**
-(one space), authored/maintained by Aether agents via the **Confluence MCP**. There is no CI:
-the contract is enforced **agent-side** by the `lint-wiki` skill before every publish. Working
+The strict contract for every page in this wiki. The wiki lives in **internal Confluence**
+(one space), maintained by Aether agents via the **Confluence MCP**. There is no CI: the
+contract is enforced **agent-side** by the `lint-wiki` skill before every publish. Working
 language is **English**.
 
-> This is the Confluence-native version of `SCHEMA.md`. Markdown is the **authoring** format
-> only — Confluence stores ADF/XHTML and the round-trip is lossy. "Front matter" fields below do
-> not live as YAML in Confluence; they are mapped onto **page properties + labels** (see §2.3).
+> Metadata note: Confluence stores pages as ADF/XHTML, so Markdown is only an *authoring*
+> convenience and the round-trip is lossy. The "front matter" fields below do not live as YAML;
+> they are mapped onto **page properties + labels** (see §2.3).
 
 The wiki has three surfaces, each a **top-level parent page** in the single space:
 
@@ -40,7 +40,7 @@ Rules:
 - **`id` is the stable key**, and must start with the type's prefix. It lives in the `id` page
   property **and** an `id:<id>` label so it survives page renames. The page **title** may be the
   human title. Never change an `id` casually.
-- Index pages, the **Wiki Contract** pages (this SCHEMA + CLAUDE), and the **Change log** page
+- Index pages, the **Wiki Contract** pages (this SCHEMA + AGENT), and the **Change log** page
   are metadata, not documents.
 - Figures are attached to the page, or stored in SharePoint/GCS and linked — never large binaries
   pasted inline.
