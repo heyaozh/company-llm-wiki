@@ -1,4 +1,4 @@
-# CLAUDE (Confluence) — CCPRM Model & Analytics Wiki Operating Manual
+# AGENT (Confluence) — CCPRM Model & Analytics Wiki Operating Manual
 
 This is the **LLM-maintained knowledge base** for the **Model & Analytics** team under **CCPRM
 (Central Clearing Counterparty Risk Management)**. It mirrors our company documents, tracks
@@ -9,7 +9,7 @@ The wiki backend is **internal Confluence** (one space), maintained by Aether ag
 repo `company-llm-wiki` is only a staging platform for authoring the contract, skills, and
 instructions.
 
-**Before doing anything, read [`SCHEMA_confluence.md`](SCHEMA_confluence.md)** — the structural
+**Before doing anything, read [`SCHEMA.md`](SCHEMA.md)** — the structural
 contract (types, page tree, page properties/labels, vocabulary, validation rules). *This* file is
 the **operational layer**: what to read, what to touch, how the workflows run. Working language
 is **English**. Security profile: **restricted** (never `privileged`).
@@ -36,7 +36,7 @@ to *locate* candidate pages, then read them in full — do not answer from chunk
 **Never fabricate.** Answer from internal + knowledge (and external as cited references). When
 the wiki has no sourced answer, reply **"Not documented."** and surface the relevant
 `open_questions` — never invent data schemas, results, or implementation details
-(`SCHEMA_confluence.md` §5).
+(`SCHEMA.md` §5).
 
 > Note on names: the internal hierarchy has a level literally called **concept**
 > (methodology/pricing/risk). Our distilled atomic primitives are **`topic`** (under the
@@ -106,12 +106,12 @@ existing topic rather than duplicating. Topics carry the same honesty rules.
 - **Every new page links ≥ 2 existing pages.** If too few targets exist, link the surface's
   top-level page and note the gap in `open_questions`.
 - **One structural change → one row on the Change log page.**
-- **Do not expand the controlled vocabulary** (`SCHEMA_confluence.md` §3) without explicit
+- **Do not expand the controlled vocabulary** (`SCHEMA.md` §3) without explicit
   approval; log it.
 - **Annual review:** bump `version`/`review_year`/`last_reviewed`; apply the `review-YYYY` label.
   The year-on-year comparison uses Confluence version history / the `review-YYYY` snapshots.
 - **Run `/lint` before publishing.** **All agent writes publish as a new version under review —
   never silently overwrite a `stable` page, never self-promote to `stable`.**
-- **Never guess** (`SCHEMA_confluence.md` §5). **Never delete human review notes** (§3).
+- **Never guess** (`SCHEMA.md` §5). **Never delete human review notes** (§3).
 - **Security profile is `restricted`** — never `privileged` (protects the "never delete review
   notes / never destroy history" rules).
