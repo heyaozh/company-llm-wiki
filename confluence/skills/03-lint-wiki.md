@@ -28,7 +28,9 @@ Read each page's properties + labels + body via the Confluence MCP and check:
 - non-`complete` `completeness` with empty `open_questions`;
 - stale `review_year` (overdue annual review);
 - orphan `topic` pages (no inbound Confluence links);
-- pages stuck at `status: review` with a `needs-review` label past their review window.
+- pages stuck at `status: review` with a `needs-review` label past their review window;
+- quantitative page (`concept` with `concept_kind` pricing/risk, `model`, or a formula `topic`)
+  with **no Formulas & notation** — no math macro / notation table (SCHEMA §6.1).
 
 ## Rules
 - Do NOT count human review-note content (inline comments / `> [!review]` callouts) toward the

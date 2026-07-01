@@ -148,15 +148,32 @@ We hold the theory but usually not the full downstream picture.
 ## 6. Page structure (body)
 
 - **internal hierarchy (`policy`/`framework`/`concept`/`manual`)**: Summary · Content (theory
-  for a `concept`) · Inputs & data (only if sourced) · Relationships (parent / model / topics).
+  for a `concept`) · **Formulas & notation** (§6.1, for a `concept`/quantitative page) · Inputs &
+  data (only if sourced) · Relationships (parent / model / topics).
 - **`business_requirement`**: Requirement · Rationale · Scope & acceptance · Open questions.
 - **`specification`**: Design · Data & interfaces · Validation · Open questions.
 - **external (`regulation`/`paper`/`article`/`other`)**: Summary · Why it is relevant · Reference.
-- **`model`**: Overview · Documents (traceability) · Distilled topics · Status & review.
-- **`topic`**: Definition · Why it matters · Used by · Related topics.
+- **`model`**: Overview (with the governing formula(s)) · **Formulas & notation** (§6.1) ·
+  Documents (traceability) · Distilled topics · Status & review.
+- **`topic`**: Definition (state the formula if the topic *is* one) · Why it matters · Used by ·
+  Related topics.
 
 Cross-link with **Confluence page links** (relative Markdown paths do not resolve in Confluence).
 On a re-published (updated) page, put a **"Changes in this version"** section at the top (§7).
+
+### 6.1 Formulas & notation (quantitative pages)
+
+For any pricing/risk `concept`, `model`, or formula `topic`, the mathematics is core content and
+is mandatory:
+
+- **Formulas** are reproduced from the source and rendered with the **LaTeX / math macro** (block
+  or inline), never flattened to plain text or paraphrased into prose. The **key formula appears
+  in the Summary**, not only deep in the body.
+- A **Notation table** accompanies every page that carries a formula: one row per symbol —
+  **symbol · definition · units/domain** — plus any conventions the source states (discounting,
+  day-count, sign, etc.).
+- Honesty (§5) still binds: transcribe only what the source gives. A missing or unclear
+  derivation step is recorded in `open_questions`, never filled in with an invented expression.
 
 ---
 

@@ -70,11 +70,14 @@ re-publish.
 1. **Read the source.** Given a path/link (SharePoint / GCS). Do not paste raw files into Confluence.
 2. **Place the internal document.** Decide its level (`policy` / `framework` / `concept` /
    `manual`) and, for a `concept`, its `concept_kind` (methodology/pricing/risk). Set `parent`
-   (property + page-tree position). If a page for this source exists, **update** it (keep `id`,
-   bump `version`, refresh `last_reviewed`/`review_year`) — never duplicate. Find it by the
-   `id:` label.
+   (property + page-tree position). Publish into the configured wiki space (custom instructions →
+   **Wiki location**); do not ask which page — derive placement from surface + `type` + `parent`.
+   If a page for this source exists, **update** it (keep `id`, bump `version`, refresh
+   `last_reviewed`/`review_year`) — never duplicate. Find it by the `id:` label.
 3. **Honesty.** Set `source_refs`; set `completeness` honestly; record every unknown in
    `open_questions`. **Do not guess** data, results, or IT details.
+   **Preserve the math** (SCHEMA §6.1): reproduce every formula + variable notation from the
+   source with the math macro, put the key formula in the Summary, add a notation table.
 4. **Distill the knowledge layer.** Create/update the `model` overview page, and extract the
    atomic, model-agnostic **`topic`** pages it rests on (one topic per page; merge, never
    duplicate). Cross-link concept ↔ model ↔ topics with Confluence page links.

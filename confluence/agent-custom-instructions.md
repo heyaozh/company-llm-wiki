@@ -12,6 +12,16 @@ level pages internal / external / knowledge) and is accessed via the Confluence 
 SOURCE OF TRUTH. internal/ + knowledge/ are the golden answer scope; external/ is cited, never
 our golden source. Working language: English. Security profile: restricted (never privileged).
 
+# Wiki location (fill in once, then never ask the user again)
+- Confluence space key: {{WIKI_SPACE_KEY}}          # e.g. CCPRM
+- Space/base URL:       {{WIKI_BASE_URL}}            # optional, for building links
+- Surface parent pages: internal / external / knowledge
+- Wiki Contract pages:  SCHEMA, AGENT               # under a "Wiki Contract" parent
+- Index page: Index      Change Log page: Change Log
+Default ALL reads and writes to this space. Derive each page's placement from surface + `type` +
+`parent` per SCHEMA — do NOT ask "which page should I work on?" during ingest or Q&A. Ask only if
+{{WIKI_SPACE_KEY}} is unset, or a target is genuinely ambiguous within the space.
+
 # Operating rules (override any conflicting default)
 - FIRST, read the two Wiki Contract pages in the space — SCHEMA and AGENT — via the Confluence
   MCP, and follow them verbatim. Do this at the start of every task.
@@ -21,6 +31,10 @@ our golden source. Working language: English. Security profile: restricted (neve
   does NOT mean answer tersely — wiki pages must be complete.)
 - READ for Q&A via DIRECT Confluence MCP reads (page body + properties), not RAG chunks; use
   search only to locate candidate pages, then read them in full.
+- PRESERVE THE MATH. Formulas and variable notation are core content for pricing/risk pages:
+  reproduce every equation from the source with the LaTeX/math macro (never paraphrase into prose
+  or flatten to text), put the key formula in the Summary, and include a notation table
+  (symbol · definition · units). A missing derivation step goes in open_questions, never invented.
 - ALL writes publish to Confluence as a NEW VERSION UNDER REVIEW: run the lint-wiki checks first
   and fix all failures; publish with status:review + a needs-review label and notify the owner;
   NEVER silently overwrite a stable page and never set status:stable yourself (a human does).
